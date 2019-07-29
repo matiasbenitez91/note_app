@@ -1,0 +1,24 @@
+name: leam
+channels:
+  - defaults
+dependencies:
+  - ca-certificates=2018.03.07=0
+  - certifi=2018.11.29=py36_0
+  - click=7.0=py36_0
+  - flask=1.0.2=py36_1
+  - flask-wtf=0.14.2=py36_1
+  - itsdangerous=1.1.0=py36_0
+  - jinja2=2.10=py36_0
+  - markupsafe=1.1.0=py36he774522_0
+  - openssl=1.1.1a=he774522_0
+  - pip=18.1=py36_0
+  - python=3.6.7=h33f27b4_1
+  - setuptools=40.6.2=py36_0
+  - vc=14.1=h0510ff6_4
+  - vs2015_runtime=14.15.26706=h3a45250_0
+  - werkzeug=0.14.1=py36_0
+  - wheel=0.32.3=py36_0
+  - wincertstore=0.2=py36h7fe50ca_0
+  - wtforms=2.2.1=py36_0
+prefix: C:\Users\hp\Anaconda2\envs\leam
+
