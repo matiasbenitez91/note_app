@@ -130,6 +130,28 @@ def entropy_batch(lis, size):
     final.append(lis[t[-1]:])
     return final
     
+#funtion to create the embedding matrix
+#input: word2vec file of embedding, word2id
+#output: embedding matrix of the words in word2id, if word not in word2id then random number in range (-0.25,0.25) is assigned
+#####################################################################
+def load_embedding_vectors_word2vec_gensim(vocabulary, filename):
+    model = gensim.models.KeyedVectors.load_word2vec_format(filename)
+    vector_size = model.vector_size
+    embedding_vectors = np.random.uniform(-0.25, 0.25, (len(vocabulary), vector_size))
+    word2vec_vocab = list(model.vocab.keys())
+    count = 0
+    mis_count = 0
+    for word in vocabulary.keys():
+        idx = vocabulary.get(word)
+        if word in word2vec_vocab:
+            embedding_vectors[idx] = model.wv[word]
+            count += 1
+        else:
+            mis_count += 1
+    print("num of vocab in word2vec: {}".format(count))
+    print("num of vocab not in word2vec: {}".format(mis_count))
+    return embedding_vectors
+    
 def inv_operation(A, v):
     return np.linalg.solve(A,v)
 

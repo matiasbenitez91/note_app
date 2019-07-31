@@ -128,6 +128,7 @@ def main():
     data.drop(['type', 'index','Unnamed: 0',"file"], axis=1, inplace=True)
     data['tokens_num']=clean_num
     data["Report#"]=list(data.index)
+    data.loc[data['valid'],'label']=float('nan')
     data.to_csv('database.csv', encoding="latin-1")
     data.to_csv('model/random_sampling/database.csv', encoding="latin-1")
     pickle.dump([["good"],["bad"]],open("model/new_dict_updt.p","wb"), protocol=2)

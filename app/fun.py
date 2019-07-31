@@ -42,7 +42,7 @@ def reset(form):
  
 def change_database_invalid(num, row):
 	db=pd.read_csv('database.csv', encoding="latin-1")
-	db.loc[num, 'label']=row['label']
+	db.loc[num, 'label']=row['Kidneys']
 	try:
 		db.loc[num, 'note_clinician']=row['note_clinician']
 	except:
@@ -53,7 +53,7 @@ def change_database_invalid(num, row):
 	db.to_csv('database.csv', index=False, encoding="latin-1")
 
 def change_database_existing(num, row):
-	db=pd.read_csv('database.csv')
+	db=pd.read_csv('database.csv', encoding="latin-1")
 	db.loc[num, 'group']='active'
 	ent=row['determinants']
 	if type(ent)!=type(None):
@@ -77,7 +77,7 @@ def get_inputs(dict):
 	
 def add_report_train(num, dict):
 	token=ast.literal_eval(get_tokens(num))
-	labels=[float('nan'), float('nan'), get_inputs(dict)[0]]
+	labels=get_inputs(dict)[0]
 	file=pickle.load(open('model/kidney/train.p', 'rb'))
 	file[0].append(token)
 	file[2]=np.append(file[2], np.array([labels]), axis=0)

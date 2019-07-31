@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow.contrib import layers
 import numpy as np
 import scipy.io as sio
-from model.SWEM import load_embedding_vectors_word2vec_gensim as load_word2vec_matias
+from model.utils import load_embedding_vectors_word2vec_gensim as load_word2vec_matias
 from math import floor
 from sklearn.metrics import roc_auc_score
 import random
@@ -397,7 +397,7 @@ def main():
 	embeddings=load_word2vec_matias(word2id, 'model/random_sampling/CTword2vec_clean')
 	x_full=data[0]
 	y=data[2]
-	class_weight={0:(1.0/np.sum(y[:,0])), 1:(1.0/np.sum(y[:,1])), 2:(1.0/np.sum(y[:,2]))}
+	#class_weight={0:(1.0/np.sum(y[:,0])), 1:(1.0/np.sum(y[:,1])), 2:(1.0/np.sum(y[:,2]))}
 	#import files
 	with open('model/random_sampling/test.p', 'rb') as f:
 		test=pickle.load(f)
@@ -429,10 +429,10 @@ def main():
 
 	train=noteix_0
 	val=noteix_test[:100]
-	train_lab=y[:,2]
-	val_lab=y_test[:100,2]
+	train_lab=y[:]
+	val_lab=y_test[:100]
 	test=noteix_test[100:]
-	test_lab=y_test[100:,2]
+	test_lab=y_test[100:]
 	database=pd.read_csv('database.csv', encoding="latin-1")
 	det_data=database.loc[database['valid'],'tokens_num'].values
 	det_data=[ast.literal_eval(x) for x in det_data]

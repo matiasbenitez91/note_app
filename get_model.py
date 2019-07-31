@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.contrib import layers
 import numpy as np
 import scipy.io as sio
-from model.SWEM import load_embedding_vectors_word2vec_gensim as load_word2vec_matias
+from model.utils import load_embedding_vectors_word2vec_gensim as load_word2vec_matias
 from math import floor
 from sklearn.metrics import roc_auc_score
 import random
