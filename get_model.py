@@ -17,15 +17,10 @@ import gc
 import pickle
 from model.model import *
 from model.utils import *
+from model.AL_utils import *
 from time import gmtime, strftime
 import ast
 
-#binary cross-entropy
-def get_entropy(p):
-	#p=np.array(prob)
-	entropy=(-p * np.log2(p)-(1-p)*np.log2(1-p))
-	entropy=np.nan_to_num(entropy)
-	return entropy
 
 class Options(object):
 	def __init__(self):
@@ -70,16 +65,11 @@ def emb_classifier(x, x_mask, y, dropout, opt, class_penalty):
 	W_class_tran = tf.transpose(W_class, [1,0]) # e * c
 	x_emb = tf.expand_dims(x_emb, 3)  # b * s * e * 1
 	H_enc = att_emb_ngram_encoder_maxout(x_emb, x_mask, W_class, W_class_tran, opt)
-	#H_enc = tf.squeeze(H_enc)
 	logits, last_layer1 = discriminator_2layer(H_enc, opt, dropout, prefix='classify_', num_outputs=opt.num_class, is_reuse=False)	# b * c
 	logits_class, last_layer2 = discriminator_2layer(W_class, opt, dropout, prefix='classify_', num_outputs=opt.num_class, is_reuse=True)
-	# prob = tf.nn.softmax(logits)
 	prob = tf.nn.sigmoid(logits)
 	class_y = tf.constant(name='class_y', shape=[opt.num_class, opt.num_class],
 						  dtype=tf.float32, value=np.identity(opt.num_class),)
-	# correct_prediction = tf.equal(tf.argmax(prob, 1), tf.argmax(y, 1))
-	# accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
 	loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=y, logits=logits)) +class_penalty * tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=class_y, logits=logits_class))
 
 	global_step = tf.Variable(0, trainable=False)
@@ -91,90 +81,15 @@ def emb_classifier(x, x_mask, y, dropout, opt, class_penalty):
 
 	return prob, logits, loss, train_op, W_norm, global_step, H_enc, last_layer1
 
-#input: reports
-#output: sigma and phi
-def input_determinants(data, opt):
-	tf.reset_default_graph()
-	pred_batch_size = 80
-	with tf.device('/gpu:0'):
-		x_ = tf.placeholder(tf.int32, shape=[None, opt.maxlen])
-		x_mask_ = tf.placeholder(tf.float32, shape=[None, opt.maxlen])
-		keep_prob = tf.placeholder(tf.float32)
-		y_ = tf.placeholder(tf.float32, shape=[None, opt.num_class])
-		class_penalty_ = tf.placeholder(tf.float32, shape=())	 
-		prob_, logits_, loss_, train_op, W_norm_, global_step, H_enc_, last_layer_ = emb_classifier(
-			x_, x_mask_, y_, keep_prob, opt, class_penalty_)
-	config = tf.ConfigProto(log_device_placement=False, allow_soft_placement=True, )
-	config.gpu_options.allow_growth = True
-	np.set_printoptions(precision=3)
-	np.set_printoptions(threshold=np.inf)
-	saver = tf.train.Saver()
-	prob_list=[]
-	last_layer=[]
-	with tf.Session(config=config) as sess:
-			train_writer = tf.summary.FileWriter(opt.log_path + '/train', sess.graph)
-			test_writer = tf.summary.FileWriter(opt.log_path + '/test', sess.graph)
-			sess.run(tf.group(tf.global_variables_initializer(), tf.local_variables_initializer()))
-			saver = tf.train.Saver()
 
-			if True:
-				try:
-					t_vars = tf.trainable_variables()
-					save_keys = tensors_key_in_file(opt.save_path)
-					ss = set([var.name for var in t_vars]) & set([s + ":0" for s in save_keys.keys()])
-					cc = {var.name: var for var in t_vars}
-					# only restore variables with correct shape
-					ss_right_shape = set([s for s in ss if cc[s].get_shape() == save_keys[s[:-2]]])
-
-					loader = tf.train.Saver(var_list=[var for var in t_vars if var.name in ss_right_shape])
-					loader.restore(sess, opt.save_path)
-
-					print("Loading variables from '%s'." % opt.save_path)
-					print("Loaded variables:" + str(ss))
-
-				except:
-					print("No saving session, using random initialization")
-					sess.run(tf.global_variables_initializer())
-					sess.run(tf.group(tf.global_variables_initializer(), tf.local_variables_initializer()))
-			ke=entropy_batch(data, 300)
-			for batch in ke:
-				x_batch, x_batch_mask = prepare_data_for_emb(batch, opt)
-				cov_prob, cov_last_layer= sess.run([prob_, last_layer_],feed_dict={x_: x_batch, x_mask_: x_batch_mask, keep_prob: 1.0,class_penalty_:0.0})
-				prob_list+=cov_prob.tolist()
-				last_layer.append(cov_last_layer)
-			prob=np.array(prob_list)
-			last_layer=np.concatenate(last_layer)
-	return prob, last_layer
-
-#input: sigma and phi
-#output: covariance matrix
-def covariance_matrix(sigma, phi):
-	t=np.reshape(sigma, (sigma.shape[0],))
-	c=t*(1-t)
-	B=np.diag(c)
-	#print(phi.shape)
-	covar=np.matmul(np.matmul(np.transpose(phi),B), phi)+np.identity(phi.shape[1])
-	return covar
-
-#get determinants
-def get_determinants(matrix, data_h, prob_data):
-	print("data_h",data_h.shape)
-	print("prob_data",prob_data.shape)
-	prob_=prob_data.reshape((prob_data.shape[0],))
-	sig=prob_*(1-prob_)
-	det_covariance=np.linalg.det(matrix)
-	def new_det(matrix, det_covar, phi, beta):
-		inv_covar=np.linalg.solve(matrix,phi)
-		new_determinant=det_covar*(1+beta*np.matmul(np.transpose(phi), inv_covar))
-		return 1/new_determinant
-	result=[]
-	for phi, beta in zip(data_h, sig):
-		det_cov=new_det(matrix,det_covariance, phi, beta)
-		result.append(det_cov)
-	return result
-
-#get model
 def get_model(train, train_lab,val, val_lab,test, test_lab, opt):
+	"""
+	Trained the model and saved it in the original folder.
+	inputs:
+		train: X training; train_lab: y train; val: X validation; test: X test; test_lab: y test; opt: class containing the hyper-parameters
+	output:
+		test auc, validation auc, covariance matrix for the training set
+	"""
 	tf.reset_default_graph()
 	pred_batch_size = 80
 	with tf.device('/gpu:0'):
@@ -267,9 +182,6 @@ def get_model(train, train_lab,val, val_lab,test, test_lab, opt):
 								train_prob, train_logits , train_last_layer= sess.run([prob_, logits_,last_layer_],
 																	feed_dict={x_: x_train_batch, x_mask_: x_train_batch_mask, 
 																			   y_: train_labels, keep_prob: 1.0, class_penalty_:0.0})
-								#last_layer needs to be appended if not full batches
-								#print(type(train_last_layer))
-								#train_last_layer=train_last_layer.numpy()
 								train_logits_list += train_logits.tolist()
 								train_prob_list += train_prob.tolist()
 								train_true_list += train_labels.tolist()
@@ -372,6 +284,7 @@ def get_model(train, train_lab,val, val_lab,test, test_lab, opt):
 				print('Training interupted')
 				print("Max VAL AUC Mean %f " % max_val_auc_mean)		  
 	return test_auc_mean, max_val_auc_mean, [validation_list, test_list], covariance_matrix(covariance_sigma, covariance_phi)
+
 def main():
 	#import label embeddings
 	labels=pickle.load(open('model/new_dict_updt.p', 'rb'))
@@ -384,17 +297,20 @@ def main():
 	embeddings=load_word2vec_matias(word2id, 'model/random_sampling/CTword2vec_clean')
 	x_full=data[0]
 	y=data[2]
-	#import files created by 'create_datasets.ipynb'
+	#import files created by 'create_datasets.py'
 	with open('model/random_sampling/test.p', 'rb') as f:
 		test=pickle.load(f)
+	#load inputs for get_model()
 	noteix_0=x_full
 	noteix_test=test[0]
 	y_test=test[2]
+	#dictionaries
 	wordtoix=word2id
 	ixtoword=id2word
 	max_test=test[-1]
 	max_len_0=max(data[-1], max_test)
 	kidney=labels[0][0]
+	#set hyper-parameters
 	opt = Options()
 	opt.num_class = 1
 	opt.class_name = [kidney]
@@ -403,13 +319,12 @@ def main():
 	os.environ['CUDA_VISIBLE_DEVICES'] = str(opt.GPUID)
 	opt.W_emb = np.float32(embeddings)
 	opt.W_class_emb = load_embb_new(wordtoix, opt)
-	#print(dict(opt))
 	print('Total words: %d' % opt.n_words)
-	#set parameters
 	opt.maxlen=max_len_0
 	opt.emb_size=300
 	opt.H_dis=150
 	opt.max_epochs=300#opt.restore=True
+	#set inputs
 	train=noteix_0
 	val=noteix_test[:100]
 	train_lab=y
@@ -420,17 +335,18 @@ def main():
 	det_data_=database.loc[database['valid'],'tokens_num']
 	det_data=[ast.literal_eval(m) for m in det_data_.tolist()]
 	_, max_auc, list_aucs, covariance=get_model(train, train_lab, val, val_lab, test, test_lab, opt)
-
+	#edit existing files
 	with open('model/kidney/initial_auc.p','wb') as f:
 		pickle.dump(list_aucs, f)
 	df=pd.DataFrame({'AUC_test': [_],'AUC_val':[max_auc]})
-	
+	#compute new determinants for AL
 	sigma, phi=input_determinants(det_data, opt)
 	determinants=get_determinants(covariance, phi, sigma)
 	database.loc[:,'determinants']=float('inf')
 	database.loc[database['valid'],'determinants']=determinants
 	database.to_csv('database.csv', encoding="latin-1",index=False)
 	df.to_csv('model/kidney/max_auc.csv', index=False)
+	#add performance to the records
 	k=pd.DataFrame({'Report#':['initial'],'AUC_test':[_],'AUC_val':[max_auc],"initial_time":float('nan'),'final_time':[strftime("%Y-%m-%d %H:%M:%S", gmtime())]})
 	dt=pd.read_csv("data/output.csv")
 	df=pd.DataFrame(columns=dt.columns.tolist())

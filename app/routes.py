@@ -6,7 +6,7 @@ from app.fun import *
 from app.forms import GoalsForm, login, Time_counter
 from model.get_auc import *
 
-
+#page showing the reports
 @app.route('/ajsjalaksneeeoeoa284744635421352a41fsoijf;aljxk;ioefm', methods=['GET', 'POST'])
 def index():
 	initial_time=request.args.get('initial_time')
@@ -75,11 +75,12 @@ def index():
 			return redirect(url_for('template_time'))
 	reset(form)
 	return render_template('index.html', note=note, form = form)
-
+#page when labeling is finished
 @app.route('/alksjdnald')
 def end():
 	return render_template('end.html')
-	
+
+#page between reports
 @app.route('/time;jkfna;sknlfas;kfna;skjfna;iowhre198p4yt4;', methods=['GET','POST'])
 def template_time():
 	form=Time_counter(request.form)
@@ -89,6 +90,7 @@ def template_time():
 		return redirect(url_for('index', initial_time=time))
 	return render_template('time.html', form=form)
 
+#login page
 @app.route('/', methods=['GET', 'POST'])
 def login():
 	error = None
