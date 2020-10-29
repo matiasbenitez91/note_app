@@ -1,1 +1,1 @@
-from app import app
+from note_labeler.app import app

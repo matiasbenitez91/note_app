@@ -1,0 +1,177 @@
+<html>
+    <style>
+        head{
+            background-color:#1E1E8C;
+            float: center;
+            margin: 0 auto;
+            width: 90%;
+            font-family:verdana;
+            font-size: 100%;
+            font-weight:medium;
+        }
+        #identifiers{
+            float: center;
+            margin: 0 auto;
+            width: 50%;
+            color: #1E1E8C;
+            font-size: 150%;
+        }
+        body {
+            background-color: lightsteelblue;
+            border: 20px solid midnightblue;
+        }
+        #text{
+            float: center;
+            margin: 0 auto;
+            width: 90%;
+            background-color:#7FB3D5;
+        }
+        #maintext{
+            font-family: helvetica;
+            color: #1E1E8C;
+            font-weight:normal;
+            margin: 0 auto;
+            float: center;
+            width: 60%;
+            line-height: 1.7;
+            font-size: 200%;
+            padding: 10px;
+        }
+        #quests{
+            float: center;
+            margin: 0 auto;
+            font-family: verdana;
+            font-size:130%;
+            border:20px solid lightsteelblue;
+            width: 90%;
+            background-color:#7FB3D5;
+            color: #1E1E8C;
+        }
+        #qtext{
+            float: center;
+            margin: 0 auto;
+            width: 60%;
+        }
+        #InputName
+        {
+            font-size:90%;
+            font-family:verdana;
+            background-color:lightsteelblue;
+            color:#1E1E8C;
+            padding: 10px 15px;
+            width:80%
+                margin: 20px 0;
+            border:4px solid darkblue;
+            border-radius:4px;
+        }
+        #inputdivision
+        {
+            font-size:80%;
+        }
+        #nameOnPage
+        {
+            font-size:80%;
+                font-weight:bold;
+        }
+    </style>
+    <head>
+        
+        
+        
+        <!--          localStorage.getItem("username") -->         
+        
+        <!-- HERE IS HOW YOU STORE THE NAME, you dont even need a homepage 
+        <script type="text/javascript" onload="onLoad()">
+            function storeName() {
+                
+                //HERE ARE NAMES to add
+                if(document.getElementById("InputName").value != "Max" && document.getElementById("InputName").value != "Tim")
+                {
+               document.getElementById("nameOnPage").innerHTML = "BadName";
+
+                }else if(typeof(Storage) !== "undefined")
+                {
+                    localStorage.setItem("username",document.getElementById("InputName").value);
+                    document.getElementById("nameOnPage").innerHTML = "Your name is stored as: " + localStorage.getItem("username");
+                }
+                else
+                {
+                    document.getElementById("nameOnPage").innerHTML = "This browser does not support web storage..";
+                }
+            }
+        </script>
+       
+
+        <!-- end on sciprt stuff for name -->
+        
+        
+        
+        
+      {% if title %}
+      <title>{{ title }} - Microblog</title>
+      {% else %}
+      <title>Notes review</title>
+      {% endif %}
+        <div id=identifiers>
+            {% block top %}{% endblock %}
+            
+            
+            
+            <!--HERES WHERE NAME IS ENTERED-->
+            <div id="nameOnPage"></div>
+            <!--
+            <div id="inputdivision">Input Name: <input type="text" id="InputName" required>
+            <br>
+            <p><button onclick="storeName()" input="InputName" type=button > Store Name </button> </p> 
+            </div>-->
+            
+            
+            
+            
+        </div>
+    </head>
+    <body> 
+        
+        
+        
+        <!--<div id="sidebar">
+            <p> "L" </p>
+        </div>-->
+        <div id="text">
+        {% block content %}{% endblock %}
+        </div>
+        <!--<div id="sidebar2">
+            <p> "R" </p>
+        </div> -->
+        <div id="quests">
+            <div id=qtext>
+            {% block questions %} {% endblock %}
+            </div>
+        </div>
+    </body>
+    
+    
+    <!--
+    
+    <script>
+        //THIS IS RUN WHEN THE PAGE LOADS AND FILLS EVERYTHING IN 
+        // as long as this script is below </body>
+        
+    if(typeof(Storage) !== "undefined")
+                {
+                   document.getElementById("nameOnPage").innerHTML = "Your name is stored as: " + localStorage.getItem("username");
+                    document.getElementById("InputName").value= localStorage.getItem("username");//changetodropdown
+                    document.getElementById("InputName").text=localStorage.getItem("username");//change to dropdown
+                }
+                else
+                {
+                    document.getElementById("nameOnPage").innerHTML = "This browser does not support web storage..";
+                } 
+    </script> 
+    -->
+    
+    
+    
+    
+    
+</html>

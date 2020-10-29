@@ -1,0 +1,13 @@
+argparse<2.0.0,>=1.4.0
+flask-wtf==0.14
+flask==1.0.2
+functools32<4.0.0,>=3.2.3
+gensim==0.12
+matplotlib==2.0
+mock==2.0
+nltk==3.0
+pandas==0.23
+scikit-learn==0.18
+scipy==0.16
+tensorflow==1.4
+werkzeug==0.14
