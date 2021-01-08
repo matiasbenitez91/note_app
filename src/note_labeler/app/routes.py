@@ -9,6 +9,7 @@ from note_labeler.model.get_auc import *
 encoding="latin-1"
 artifacts_path="data/"
 #page showing the reports
+
 @app.route('/ajsjalaksneeeoeoa284744635421352a41fsoijf;aljxk;ioefm', methods=['GET', 'POST'])
 def index():
 	initial_time=request.args.get('initial_time')
@@ -16,10 +17,10 @@ def index():
 	if request.method == 'GET':
 		form.initial_time.data = initial_time
 	user_output=artifacts_path+"output.csv"
-	#try:
-	num=get_report_determinant()
-	"""except:
-	return redirect(url_for('end'))"""
+	try:
+		num=get_report_determinant()
+	except:
+		return redirect(url_for('end'))
 	note=data_to_dict(num)
 	note['note_text']=extract_findings(note['note_text'])
 	if exist_label(num):
@@ -41,8 +42,6 @@ def index():
 		change_database_existing(num, row)
 		return redirect(url_for('template_time'))
 	else:
-	#x=note['data']
-	##new code here
 		if form.validate_on_submit():
 			initial_time=form.initial_time.data
 			final_time=strftime("%Y-%m-%d %H:%M:%S", gmtime())
@@ -76,6 +75,8 @@ def index():
 			return redirect(url_for('template_time'))
 	reset(form)
 	return render_template('index.html', note=note, form = form)
+
+
 #page when labeling is finished
 @app.route('/alksjdnald')
 def end():
