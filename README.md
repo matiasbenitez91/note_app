@@ -3,7 +3,7 @@
 ## Description
 This repo aims to show the code used in *Combining Deep Learning Methods and Human Knowledge to Identify Anomalies in Computed Tomography (CT) Reports* by using the Amazon Reviews dataset. The presentation can be found in spie.ppt.
 
-![Alt text](screen2.png?raw=true "Snapshot 2")
+![Alt text](screen.png?raw=true "Snapshot 2")
 
 ## Instructions
 To run the app:
